@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>فعاليات الرياض</title>
+  <!-- تضمين خط Google Fonts لتصميم جذاب -->
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700&display=swap" rel="stylesheet">
+  <!-- استخدام Font Awesome إصدار 5.15.4 لعرض شعار تويتر التقليدي -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <style>
+    /* إعادة تعيين بعض الخصائص */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Cairo', sans-serif;
+      background-color: #f0f2f5;
+      color: #333;
+      direction: rtl;
+      line-height: 1.6;
+    }
+    /* تنسيق الهيدر */
+    header {
+      background: linear-gradient(90deg, #242528a0, #7e7e7e1d);
+      color: #fff;
+      padding: 20px 0;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    header h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+    }
+    /* تنسيق الحاوية الرئيسية */
+    .container {
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 0 15px;
+    }
+    /* صندوق البحث */
+    .search-box {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 30px;
+    }
+    .search-box input {
+      width: 100%;
+      max-width: 500px;
+      padding: 12px 20px;
+      border: 2px solid #ccc;
+      border-radius: 30px;
+      font-size: 16px;
+      transition: border-color 0.3s ease;
+    }
+    .search-box input:focus {
+      outline: none;
+      border-color: #457b9d;
+    }
+    /* شبكة عرض الفعاليات */
+    .events-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    /* تصميم بطاقة الفعالية */
+    .event-card {
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      padding: 20px;
+      transition: transform 0.3s ease;
+    }
+    .event-card:hover {
+      transform: translateY(-5px);
+    }
+    .event-card h2 {
+      font-size: 1.5em;
+      margin-bottom: 10px;
+      color: #1d3557;
+    }
+    .event-card p {
+      margin-bottom: 8px;
+    }
+    .event-card .label {
+      font-weight: 700;
+      color: #457b9d;
+    }
+    .event-card a {
+      text-decoration: none;
+      color: #457b9d;
+      font-weight: 700;
+      transition: color 0.3s ease;
+    }
+    .event-card a:hover {
+      color: #1d3557;
+    }
+    /* تنسيق الفوتر */
+    footer {
+      background-color: #242528a0;
+      color: #fff;
+      text-align: center;
+      padding: 15px 0;
+      margin-top: 40px;
+    }
+    .social-icons {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-top: 10px;
+    }
+    .social-icons a {
+      font-size: 24px;
+      color: #fff;
+      transition: color 0.3s ease;
+    }
+    .social-icons a:hover {
+      color: #457b9d;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>فعاليات الرياض</h1>
+  </header>
+  
+  <div class="container">
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="ابحث عن فعالية...">
+    </div>
+    <div class="events-grid" id="eventsContainer">
+      <!-- سيتم إضافة بطاقات الفعاليات هنا بواسطة JavaScript -->
+    </div>
+  </div>
+  
+  <footer>
+    <p>&copy; 2025 فعاليات الرياض. جميع الحقوق محفوظة.</p>
+    <div class="social-icons">
+      <!-- أيقونات وسائل التواصل الاجتماعي كما في المثال السابق -->
+      <a href="https://twitter.com/yourusername" target="_blank"><i class="fab fa-twitter"></i></a>
+      <a href="https://www.instagram.com/yourusername" target="_blank"><i class="fab fa-instagram"></i></a>
+      <a href="https://www.linkedin.com/in/abdullah-alsubaie-2b558634b?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app" target="_blank"><i class="fab fa-linkedin"></i></a>
+    </div>
+  </footer>
+  
+  <!-- JavaScript لإدارة عرض الفعاليات ووظيفة البحث -->
+  <script>
+    // بيانات الفعاليات (يمكن استبدالها لاحقًا ببيانات مأخوذة من API)
+    const events = [
+      {
+        name: "حفلة أي. آر. رحمان",
+        date: "21 فبراير 2025",
+        time: "8:00 مساءً",
+        location: "فوكالي الرياض"
+      },
+      {
+        name: "فعالية رمالينا",
+        date: "10 يناير 2025 - 1 مارس 2025",
+        time: "يبدأ من 6:00 مساءً",
+        location: "مركز الرياض"
+      },
+      {
+        name: "موسم الشتوية في غرناطة مول",
+        date: "19 ديسمبر 2024 - 16 فبراير 2025",
+        time: "10:00 صباحاً",
+        location: "غرناطة مول، الرياض"
+      },
+      {
+        name: "حفلة الحب مع إيمان عبدالغني",
+        date: "12 فبراير 2025",
+        time: "7:00 مساءً",
+        location: "فوكالي الرياض"
+      }
+    ];
+
+    // دالة لعرض الفعاليات
+    function displayEvents(filteredEvents) {
+      const container = document.getElementById("eventsContainer");
+      container.innerHTML = ""; // مسح المحتوى السابق
+
+      if(filteredEvents.length === 0) {
+        container.innerHTML = "<p style='text-align:center; font-size:1.2em;'>لا توجد فعاليات مطابقة للبحث.</p>";
+        return;
+      }
+
+      filteredEvents.forEach(event => {
+        // إنشاء رابط خرائط جوجل باستخدام الموقع
+        const mapUrl = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(event.location);
+        const card = document.createElement("div");
+        card.className = "event-card";
+        card.innerHTML = `
+          <h2>${event.name}</h2>
+          <p><span class="label">التاريخ:</span> ${event.date}</p>
+          <p><span class="label">الوقت:</span> ${event.time}</p>
+          <p><span class="label">المكان:</span> ${event.location}</p>
+          <p><a href="${mapUrl}" target="_blank">عرض الموقع على خرائط جوجل</a></p>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // عرض جميع الفعاليات عند تحميل الصفحة
+    displayEvents(events);
+
+    // وظيفة البحث لتصفية الفعاليات
+    const searchInput = document.getElementById("searchInput");
+    searchInput.addEventListener("input", () => {
+      const query = searchInput.value.toLowerCase();
+      const filtered = events.filter(e => 
+        e.name.toLowerCase().includes(query) || 
+        e.date.toLowerCase().includes(query) || 
+        e.location.toLowerCase().includes(query)
+      );
+      displayEvents(filtered);
+    });
+  </script>
+</body>
+</html>

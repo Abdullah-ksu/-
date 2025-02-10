@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>الأماكن السياحية والتراثية</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    #map {
+      height: 500px;
+      width: 100%;
+    }
+    #story-box {
+      width: 100%;
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #f0f0f0;
+      border-radius: 5px;
+      display: none;
+    }
+    h1, p {
+      font-family: Arial, sans-serif;
+    }
+    .rating {
+      display: flex;
+      justify-content: flex-start;
+      margin: 10px 0;
+    }
+    .rating input {
+      display: none;
+    }
+    .rating label {
+      font-size: 20px;
+      color: #ccc;
+      margin: 0 2px;
+      cursor: pointer;
+    }
+    .rating input:checked ~ label {
+      color: gold;
+    }
+    #image-preview {
+      margin-top: 10px;
+      max-width: 100%;
+      height: auto;
+    }
+    #navigation-buttons {
+      margin-top: 10px;
+    }
+    #navigation-buttons button {
+      margin-left: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>استكشاف الأماكن السياحية والتراثية</h1>
+  <div id="navigation-buttons">
+    <select id="filter-select" onchange="filterPlaces()">
+      <option value="all">كل الأماكن</option>
+      <option value="historical">معالم تاريخية</option>
+      <option value="natural">أماكن طبيعية</option>
+    </select>
+    <button onclick="window.open('exam.html', '_blank')">فعاليات الرياض</button>
+    <!-- تم إضافة زر موقعك الحالي -->
+    <button onclick="getUserLocation()">موقعي الحالي</button>
+  </div>
+  <input type="text" id="search-box" placeholder="ابحث عن مكان سياحي أو تراثي" onkeyup="searchPlaces()" />
+
+  <div id="map"></div>
+
+  <div id="story-box">
+    <h2 id="place-title"></h2>
+    <p id="place-description"></p>
+    <img id="place-image" style="width: 100%; height: auto;" />
+    <p id="place-address"></p>
+
+    <div>
+      <h3>تقييم هذا المكان</h3>
+      <div class="rating">
+        <input type="radio" id="star5" name="rating" value="5"><label for="star5">★</label>
+        <input type="radio" id="star4" name="rating" value="4"><label for="star4">★</label>
+        <input type="radio" id="star3" name="rating" value="3"><label for="star3">★</label>
+        <input type="radio" id="star2" name="rating" value="2"><label for="star2">★</label>
+        <input type="radio" id="star1" name="rating" value="1"><label for="star1">★</label>
+      </div>
+      <textarea id="user-comment" placeholder="اكتب تعليقك هنا..." rows="3" style="width: 100%;"></textarea><br><br>
+
+      <label for="image-upload">ارفق صورة:</label>
+      <input type="file" id="image-upload" accept="image/*"><br><br>
+      <img id="image-preview" alt="صورة المعاينة" style="display:none;"/><br><br>
+
+      <button onclick="submitRating()">إرسال التقييم</button>
+    </div>
+    <div id="ratings-display" style="margin-top: 20px;"></div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    var places = [
+      {
+        name: "المصمك",
+        lat: 24.6333,
+        lng: 46.7167,
+        category: "historical",
+        story: "المصمك هو قلعة تاريخية في الرياض، المملكة العربية السعودية، وهو أحد أقدم المباني في المدينة.",
+        image: "almasmak.jpg",
+        address: "الرياض، السعودية",
+        ratings: []
+      },
+    ];
+
+    var map;
+    var markers = [];
+    var selectedPlace;
+    var uploadedImageUrl = '';
+    var userMarker; // متغير لتخزين علامة موقع المستخدم
+
+    function initMap() {
+      map = L.map('map').setView([29.9792, 31.1342], 6);
+
+      L.tileLayer('https://api.maptiler.com/maps/basic-v2/{z}/{x}/{y}.png?key=PobWI8ErU9eg1kifmrSa').addTo(map);
+
+      updateMarkers(places);
+    }
+
+    function updateMarkers(filteredPlaces) {
+      markers.forEach(marker => marker.remove());
+      markers = [];
+
+      filteredPlaces.forEach(function(place) {
+        var marker = L.marker([place.lat, place.lng]).addTo(map)
+          .bindPopup(place.name)
+          .on('click', function() {
+            showPlaceDetails(place);
+          });
+        markers.push(marker);
+      });
+    }
+
+    function searchPlaces() {
+      var searchValue = document.getElementById('search-box').value.toLowerCase();
+      var filteredPlaces = places.filter(place => place.name.toLowerCase().includes(searchValue));
+      updateMarkers(filteredPlaces);
+    }
+
+    function filterPlaces() {
+      var category = document.getElementById('filter-select').value;
+      var filteredPlaces = category === 'all' ? places : places.filter(place => place.category === category);
+      updateMarkers(filteredPlaces);
+    }
+
+    function showPlaceDetails(place) {
+      selectedPlace = place;
+      document.getElementById("place-title").textContent = place.name;
+      document.getElementById("place-description").textContent = place.story;
+      document.getElementById("place-image").src = place.image;
+      document.getElementById("place-address").textContent = place.address;
+      document.getElementById("story-box").style.display = 'block';
+
+      displayRatings();
+    }
+
+    function submitRating() {
+      var rating = document.querySelector('input[name="rating"]:checked') 
+        ? document.querySelector('input[name="rating"]:checked').value 
+        : null;
+      var comment = document.getElementById("user-comment").value.trim();
+
+      if (!rating && !comment) {
+        alert("يرجى اختيار تقييم أو كتابة تعليق.");
+        return;
+      }
+
+      if (selectedPlace) {
+        selectedPlace.ratings.push({ 
+          rating: rating || "لا يوجد", 
+          comment: comment || "لا تعليق", 
+          imageUrl: uploadedImageUrl || "" 
+        });
+
+        document.querySelectorAll('input[name="rating"]').forEach(radio => radio.checked = false);
+        document.getElementById("user-comment").value = '';
+        document.getElementById("image-preview").style.display = 'none';
+        uploadedImageUrl = '';
+
+        alert("تم إرسال التقييم بنجاح!");
+        displayRatings();
+      } else {
+        alert("لم يتم تحديد أي مكان!");
+      }
+    }
+
+    function displayRatings() {
+      var ratingsDisplay = document.getElementById("ratings-display");
+      ratingsDisplay.innerHTML = '';
+
+      if (selectedPlace.ratings.length === 0) {
+        ratingsDisplay.innerHTML = '<p>لا توجد تقييمات لهذا المكان بعد.</p>';
+        return;
+      }
+
+      var totalRatings = selectedPlace.ratings.filter(r => r.rating !== "لا يوجد").length;
+      var averageRating = totalRatings > 0
+        ? selectedPlace.ratings.reduce((sum, rating) => sum + (parseInt(rating.rating) || 0), 0) / totalRatings
+        : 0;
+
+      ratingsDisplay.innerHTML = `<p>متوسط التقييم: ${averageRating.toFixed(1)} من 5</p>`;
+      
+      selectedPlace.ratings.forEach(function(rating) {
+        ratingsDisplay.innerHTML += `
+          <div style="margin-bottom: 15px;">
+            <p><strong>التقييم:</strong> ${rating.rating} نجوم</p>
+            <p><strong>التعليق:</strong> ${rating.comment}</p>
+            ${rating.imageUrl 
+              ? `<img src="${rating.imageUrl}" style="max-width: 200px; height: auto; margin-top: 10px;" />` 
+              : '' }
+          </div>
+        `;
+      });
+    }
+
+    document.getElementById('image-upload').addEventListener('change', function(event) {
+      var file = event.target.files[0];
+      if (file) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          uploadedImageUrl = e.target.result;
+          var imagePreview = document.getElementById('image-preview');
+          imagePreview.src = e.target.result;
+          imagePreview.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    function openNewWindow() {
+      window.open("https://example.com/new-window", "_blank");
+    }
+
+    // دالة لإضافة دبوس موقع المستخدم
+    function getUserLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          function(position) {
+            var userLat = position.coords.latitude;
+            var userLng = position.coords.longitude;
+
+            // إذا كان هناك علامة سابقة، قم بإزالتها
+            if (userMarker) {
+              map.removeLayer(userMarker);
+            }
+
+            // إضافة علامة لموقع المستخدم
+            userMarker = L.marker([userLat, userLng]).addTo(map)
+              .bindPopup("موقعك الحالي").openPopup();
+
+            // تحريك الخريطة إلى موقع المستخدم
+            map.setView([userLat, userLng], 12);
+          },
+          function(error) {
+            alert("تعذر الحصول على موقعك. تأكد من تفعيل خدمة تحديد الموقع.");
+          }
+        );
+      } else {
+        alert("المتصفح لا يدعم تحديد الموقع.");
+      }
+    }
+
+    initMap();
+  </script>
+</body>
+</html>
