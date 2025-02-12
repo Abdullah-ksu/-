@@ -6,7 +6,7 @@
   <title>فعاليات الرياض</title>
   <!-- تضمين خط Google Fonts لتصميم جذاب -->
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700&display=swap" rel="stylesheet">
-  <!-- استخدام Font Awesome إصدار 5.15.4 لعرض شعار تويتر التقليدي -->
+  <!-- استخدام Font Awesome لإظهار أيقونات وسائل التواصل الاجتماعي -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
   <style>
     /* إعادة تعيين بعض الخصائص */
@@ -44,7 +44,7 @@
     .search-box {
       display: flex;
       justify-content: center;
-      margin-bottom: 30px;
+      margin-bottom: 20px;
     }
     .search-box input {
       width: 100%;
@@ -58,6 +58,23 @@
     .search-box input:focus {
       outline: none;
       border-color: #457b9d;
+    }
+    /* زر عرض الجدول الأسبوعي */
+    .toggle-schedule {
+      display: block;
+      margin: 0 auto 20px auto;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #457b9d;
+      border: none;
+      color: #fff;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      width: fit-content;
+    }
+    .toggle-schedule:hover {
+      background-color: #1d3557;
     }
     /* شبكة عرض الفعاليات */
     .events-grid {
@@ -88,14 +105,38 @@
       font-weight: 700;
       color: #457b9d;
     }
-    .event-card a {
+    .event-card a, .event-card button {
       text-decoration: none;
       color: #457b9d;
       font-weight: 700;
       transition: color 0.3s ease;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      font-family: inherit;
     }
-    .event-card a:hover {
+    .event-card a:hover, .event-card button:hover {
       color: #1d3557;
+    }
+    /* تنسيق جدول الجدول الأسبوعي */
+    #scheduleContainer {
+      display: none;
+      overflow-x: auto;
+      margin-top: 20px;
+    }
+    .schedule-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: center;
+    }
+    .schedule-table th, .schedule-table td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      min-width: 100px;
+    }
+    .schedule-table th {
+      background-color: #f4f4f4;
     }
     /* تنسيق الفوتر */
     footer {
@@ -119,6 +160,23 @@
     .social-icons a:hover {
       color: #457b9d;
     }
+    /* زر العودة للموقع الرئيسي */
+    .return-button {
+      margin-top: 20px;
+    }
+    .return-button button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #457b9d;
+      border: none;
+      color: #fff;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .return-button button:hover {
+      background-color: #1d3557;
+    }
   </style>
 </head>
 <body>
@@ -127,27 +185,38 @@
   </header>
   
   <div class="container">
+    <!-- صندوق البحث -->
     <div class="search-box">
       <input type="text" id="searchInput" placeholder="ابحث عن فعالية...">
     </div>
+    <!-- زر تبديل العرض بين الفعاليات والجدول الأسبوعي -->
+    <button class="toggle-schedule" id="toggleScheduleBtn">عرض الجدول الأسبوعي</button>
+    
+    <!-- قائمة الفعاليات -->
     <div class="events-grid" id="eventsContainer">
-      <!-- سيتم إضافة بطاقات الفعاليات هنا بواسطة JavaScript -->
+      <!-- ستضاف بطاقات الفعاليات بواسطة JavaScript -->
+    </div>
+    
+    <!-- حاوية جدول الجدول الأسبوعي -->
+    <div id="scheduleContainer">
+      <!-- سيتم إنشاء الجدول بواسطة JavaScript -->
     </div>
   </div>
   
   <footer>
     <p>&copy; 2025 فعاليات الرياض. جميع الحقوق محفوظة.</p>
     <div class="social-icons">
-      <!-- أيقونات وسائل التواصل الاجتماعي كما في المثال السابق -->
       <a href="https://twitter.com/yourusername" target="_blank"><i class="fab fa-twitter"></i></a>
       <a href="https://www.instagram.com/yourusername" target="_blank"><i class="fab fa-instagram"></i></a>
-      <a href="https://www.linkedin.com/in/abdullah-alsubaie-2b558634b?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app" target="_blank"><i class="fab fa-linkedin"></i></a>
+      <a href="https://www.linkedin.com/in/abdullah-alsubaie-2b558634b" target="_blank"><i class="fab fa-linkedin"></i></a>
+    </div>
+    <div class="return-button">
+      <button onclick="window.location.href='examp.html'">العودة للموقع الرئيسي</button>
     </div>
   </footer>
   
-  <!-- JavaScript لإدارة عرض الفعاليات ووظيفة البحث -->
   <script>
-    // بيانات الفعاليات (يمكن استبدالها لاحقًا ببيانات مأخوذة من API)
+    // بيانات الفعاليات
     const events = [
       {
         name: "حفلة أي. آر. رحمان",
@@ -174,18 +243,24 @@
         location: "فوكالي الرياض"
       }
     ];
-
-    // دالة لعرض الفعاليات
+    
+    // مصفوفة لتخزين المواعيد المختارة في الجدول الأسبوعي
+    let scheduleEntries = []; // كل عنصر: { event, day, hour }
+    
+    // الأيام المستخدمة في الجدول (يمكن تعديلها حسب التفضيل)
+    const daysOfWeek = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
+    
+    // دالة لعرض الفعاليات مع إضافة زر "إضافة إلى الجدول"
     function displayEvents(filteredEvents) {
       const container = document.getElementById("eventsContainer");
-      container.innerHTML = ""; // مسح المحتوى السابق
-
+      container.innerHTML = "";
+  
       if(filteredEvents.length === 0) {
         container.innerHTML = "<p style='text-align:center; font-size:1.2em;'>لا توجد فعاليات مطابقة للبحث.</p>";
         return;
       }
-
-      filteredEvents.forEach(event => {
+  
+      filteredEvents.forEach((event, index) => {
         // إنشاء رابط خرائط جوجل باستخدام الموقع
         const mapUrl = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(event.location);
         const card = document.createElement("div");
@@ -196,14 +271,15 @@
           <p><span class="label">الوقت:</span> ${event.time}</p>
           <p><span class="label">المكان:</span> ${event.location}</p>
           <p><a href="${mapUrl}" target="_blank">عرض الموقع على خرائط جوجل</a></p>
+          <p><button onclick="addToSchedule(${index})">إضافة إلى الجدول</button></p>
         `;
         container.appendChild(card);
       });
     }
-
+    
     // عرض جميع الفعاليات عند تحميل الصفحة
     displayEvents(events);
-
+    
     // وظيفة البحث لتصفية الفعاليات
     const searchInput = document.getElementById("searchInput");
     searchInput.addEventListener("input", () => {
@@ -214,6 +290,79 @@
         e.location.toLowerCase().includes(query)
       );
       displayEvents(filtered);
+    });
+    
+    // دالة لإضافة فعالية إلى الجدول الأسبوعي
+    function addToSchedule(eventIndex) {
+      const event = events[eventIndex];
+      // استخدام prompt لاختيار اليوم والساعة (يمكن استبدالها بنموذج مخصص)
+      let day = prompt("أدخل اليوم الذي تريد إضافة الفعالية إليه (مثلاً: الأحد):");
+      if(!day || !daysOfWeek.includes(day.trim())) {
+        alert("يجب إدخال يوم صحيح من الأيام التالية:\n" + daysOfWeek.join(", "));
+        return;
+      }
+      let hour = prompt("أدخل الساعة (0-23):");
+      hour = parseInt(hour);
+      if(isNaN(hour) || hour < 0 || hour > 23) {
+        alert("يجب إدخال ساعة صحيحة بين 0 و 23.");
+        return;
+      }
+      // إضافة الفعالية إلى الجدول
+      scheduleEntries.push({ event, day: day.trim(), hour });
+      alert("تمت الإضافة إلى الجدول الأسبوعي.");
+      // تحديث عرض الجدول إذا كان ظاهرًا
+      if(document.getElementById("scheduleContainer").style.display !== "none"){
+        renderScheduleTable();
+      }
+    }
+    
+    // دالة إنشاء الجدول الأسبوعي
+    function renderScheduleTable() {
+      const container = document.getElementById("scheduleContainer");
+      // إنشاء جدول مع عمود للوقت وسبعة أعمدة للأيام
+      let tableHTML = `<table class="schedule-table">
+        <thead>
+          <tr>
+            <th>الوقت</th>`;
+      daysOfWeek.forEach(day => {
+        tableHTML += `<th>${day}</th>`;
+      });
+      tableHTML += `</tr>
+        </thead>
+        <tbody>`;
+      // إنشاء 24 صفاً لكل ساعة من 0 إلى 23
+      for(let h = 0; h < 24; h++){
+        // تنسيق الساعة بشكل (مثلاً: 08:00)
+        const hourLabel = h.toString().padStart(2, "0") + ":00";
+        tableHTML += `<tr>
+          <td>${hourLabel}</td>`;
+        daysOfWeek.forEach(day => {
+          // البحث عن الفعاليات المجدولة في هذا اليوم والساعة
+          const cellEvents = scheduleEntries.filter(entry => entry.day === day && entry.hour === h);
+          let cellContent = "";
+          cellEvents.forEach(entry => {
+            cellContent += `<div style="margin-bottom:5px; font-size:0.9em;">${entry.event.name}</div>`;
+          });
+          tableHTML += `<td>${cellContent}</td>`;
+        });
+        tableHTML += `</tr>`;
+      }
+      tableHTML += `</tbody></table>`;
+      container.innerHTML = tableHTML;
+    }
+    
+    // تبديل عرض الجدول الأسبوعي عند الضغط على الزر
+    const toggleBtn = document.getElementById("toggleScheduleBtn");
+    toggleBtn.addEventListener("click", () => {
+      const scheduleContainer = document.getElementById("scheduleContainer");
+      if(scheduleContainer.style.display === "none" || scheduleContainer.style.display === ""){
+        scheduleContainer.style.display = "block";
+        toggleBtn.textContent = "إخفاء الجدول الأسبوعي";
+        renderScheduleTable();
+      } else {
+        scheduleContainer.style.display = "none";
+        toggleBtn.textContent = "عرض الجدول الأسبوعي";
+      }
     });
   </script>
 </body>
