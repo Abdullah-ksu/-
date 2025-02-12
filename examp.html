@@ -58,7 +58,7 @@
     <select id="filter-select" onchange="filterPlaces()">
       <option value="all">كل الأماكن</option>
       <option value="historical">معالم تاريخية</option>
-      <option value="natural">أماكن طبيعية</option>
+      <option value="natural">وجهات سياحية</option>
     </select>
     <button onclick="window.open('exam.html', '_blank')">فعاليات الرياض</button>
     <!-- تم إضافة زر موقعك الحالي -->
@@ -96,17 +96,78 @@
 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
+    // إضافة جميع الأماكن المعروفة في الرياض
     var places = [
       {
         name: "المصمك",
         lat: 24.6333,
         lng: 46.7167,
         category: "historical",
-        story: "المصمك هو قلعة تاريخية في الرياض، المملكة العربية السعودية، وهو أحد أقدم المباني في المدينة.",
+        story: "المصمك هو قلعة تاريخية في الرياض، وهو أحد أقدم المباني في المدينة.",
         image: "almasmak.jpg",
-        address: "الرياض، السعودية",
+        address: "الرياض، المملكة العربية السعودية",
         ratings: []
       },
+      {
+        name: "برج المملكة",
+        lat: 24.7113,
+        lng: 46.6747,
+        category: "natural",
+        story: "برج المملكة هو أحد أشهر معالم الرياض ويتميز بتصميمه المعماري الفريد.",
+        image: "kingdom_tower.jpg",
+        address: "الرياض، المملكة العربية السعودية",
+        ratings: []
+      },
+      {
+        name: "برج الفيصلية",
+        lat: 24.6877,
+        lng: 46.7219,
+        category: "natural",
+        story: "برج الفيصلية يعد من أبرز معالم الرياض ويتميز بقمته الزجاجية.",
+        image: "al_faisaliah_tower.jpg",
+        address: "الرياض، المملكة العربية السعودية",
+        ratings: []
+      },
+      {
+        name: "البوليفارد",
+        lat: 24.7250,
+        lng: 46.6750,
+        category: "natural",
+        story: "البوليفارد هو منطقة تجمع بين التسوق والترفيه في قلب الرياض.",
+        image: "boulevard.jpg",
+        address: "الرياض، المملكة العربية السعودية",
+        ratings: []
+      },
+      {
+        name: "البوليفارد وورد",
+        lat: 24.7400,
+        lng: 46.6900,
+        category: "natural",
+        story: "البوليفارد وورد هو مشروع تجاري وترفيهي مميز في الرياض.",
+        image: "boulevard_ward.jpg",
+        address: "الرياض، المملكة العربية السعودية",
+        ratings: []
+      },
+      {
+        name: "واجهة روشن",
+        lat: 24.7200,
+        lng: 46.7100,
+        category: "natural",
+        story: "واجهة روشن تعد من أحدث مشاريع التطوير الحضري في الرياض.",
+        image: "roshan_waterfront.jpg",
+        address: "الرياض، المملكة العربية السعودية",
+        ratings: []
+      },
+      {
+        name: "مركز الملك عبدالله المالي",
+        lat: 24.7667,
+        lng: 46.7000,
+        category: "natural",
+        story: "مركز الملك عبدالله المالي هو قلب الأعمال والمال في الرياض.",
+        image: "king_abdullah_financial_center.jpg",
+        address: "الرياض، المملكة العربية السعودية",
+        ratings: []
+      }
     ];
 
     var map;
@@ -116,10 +177,21 @@
     var userMarker; // متغير لتخزين علامة موقع المستخدم
 
     function initMap() {
-      map = L.map('map').setView([29.9792, 31.1342], 6);
+      // توسيع حدود الرياض قليلاً لمنطقة أكثر مرونة
+      var southWest = L.latLng(24.3, 46.2);   // الزاوية الجنوبية الغربية
+      var northEast = L.latLng(25.2, 47.3);     // الزاوية الشمالية الشرقية
+      var bounds = L.latLngBounds(southWest, northEast);
+
+      // إنشاء الخريطة مع تقييد حركة المستخدم ضمن الحدود مع تأثير ارتداد خفيف
+      map = L.map('map', {
+        center: [24.7136, 46.6753],  // إحداثيات الرياض
+        zoom: 11,
+        minZoom: 11,                // منع التكبير للخارج
+        maxBounds: bounds,          // تقييد حركة الخريطة ضمن الحدود المحددة
+        maxBoundsViscosity: 0.5      // تقليل الشدة لجعل التحكم سلسًا
+      });
 
       L.tileLayer('https://api.maptiler.com/maps/basic-v2/{z}/{x}/{y}.png?key=PobWI8ErU9eg1kifmrSa').addTo(map);
-
       updateMarkers(places);
     }
 
