@@ -6,6 +6,7 @@
   <title>الأماكن السياحية والتراثية</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <style>
+    /* بعض التنسيقات الأساسية للخريطة ومربعات المحتوى */
     #map {
       height: 500px;
       width: 100%;
@@ -43,65 +44,159 @@
       max-width: 100%;
       height: auto;
     }
+    /* تنسيق أزرار التنقل */
     #navigation-buttons {
       margin-top: 10px;
     }
-    #navigation-buttons button {
+    #navigation-buttons button,
+    #navigation-buttons select {
       margin-left: 10px;
+    }
+    /* تنسيق مُبدل اللغة باستخدام الأعلام */
+    .language-switcher {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin: 10px;
+    }
+    .language-switcher button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      padding: 5px 8px;
+      transition: background-color 0.3s ease;
+    }
+    .language-switcher button:hover {
+      background-color: #e0e0e0;
+      border-radius: 4px;
+    }
+    .language-switcher .flag-icon {
+      width: 24px;
+      height: auto;
+      margin-right: 5px;
     }
   </style>
 </head>
 <body>
 
-  <h1>استكشاف الأماكن السياحية والتراثية</h1>
+  <!-- مُبدل اللغة مع الأعلام -->
+  <div class="language-switcher">
+    <button onclick="switchLanguage('ar')">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/0/0d/Flag_of_Saudi_Arabia.svg" alt="العربية" class="flag-icon">
+      العربية
+    </button>
+    <button onclick="switchLanguage('en')">
+      <img src="https://upload.wikimedia.org/wikipedia/en/a/ae/Flag_of_the_United_Kingdom.svg" alt="English" class="flag-icon">
+      English
+    </button>
+  </div>
+
+  <!-- عنوان الصفحة -->
+  <h1 id="page-header">استكشاف الأماكن السياحية والتراثية</h1>
+  
+  <!-- أزرار القائمة -->
   <div id="navigation-buttons">
     <select id="filter-select" onchange="filterPlaces()">
-      <option value="all">كل الأماكن</option>
-      <option value="historical">معالم تاريخية</option>
-      <option value="natural">وجهات سياحية</option>
+      <option value="all" id="option-all">كل الأماكن</option>
+      <option value="historical" id="option-historical">معالم تاريخية</option>
+      <option value="natural" id="option-natural">وجهات سياحية</option>
     </select>
-    <button onclick="window.open('exam.html', '_blank')">فعاليات الرياض</button>
-    <!-- تم إضافة زر موقعك الحالي -->
-    <button onclick="getUserLocation()">موقعي الحالي</button>
+    <button id="events-btn" onclick="window.open('exam.html', '_blank')">فعاليات الرياض</button>
+    <button id="location-btn" onclick="getUserLocation()">موقعي الحالي</button>
   </div>
+  
+  <!-- صندوق البحث -->
   <input type="text" id="search-box" placeholder="ابحث عن مكان سياحي أو تراثي" onkeyup="searchPlaces()" />
 
   <div id="map"></div>
 
+  <!-- مربع تفاصيل المكان -->
   <div id="story-box">
     <h2 id="place-title"></h2>
     <p id="place-description"></p>
-    <img id="place-image" style="width: 100%; height: auto;" />
+    <img id="place-image" style="width: 100%; height: auto;" alt="صورة المكان"/>
     <p id="place-address"></p>
 
     <div>
-      <h3>تقييم هذا المكان</h3>
+      <h3 id="rating-heading">تقييم هذا المكان</h3>
       <div class="rating">
-        <input type="radio" id="star5" name="rating" value="5"><label for="star5">★</label>
-        <input type="radio" id="star4" name="rating" value="4"><label for="star4">★</label>
-        <input type="radio" id="star3" name="rating" value="3"><label for="star3">★</label>
-        <input type="radio" id="star2" name="rating" value="2"><label for="star2">★</label>
-        <input type="radio" id="star1" name="rating" value="1"><label for="star1">★</label>
+        <input type="radio" id="star5" name="rating" value="5">
+        <label for="star5">★</label>
+        <input type="radio" id="star4" name="rating" value="4">
+        <label for="star4">★</label>
+        <input type="radio" id="star3" name="rating" value="3">
+        <label for="star3">★</label>
+        <input type="radio" id="star2" name="rating" value="2">
+        <label for="star2">★</label>
+        <input type="radio" id="star1" name="rating" value="1">
+        <label for="star1">★</label>
       </div>
       <textarea id="user-comment" placeholder="اكتب تعليقك هنا..." rows="3" style="width: 100%;"></textarea><br><br>
 
-      <label for="image-upload">ارفق صورة:</label>
+      <label for="image-upload" id="attach-image-label">ارفق صورة:</label>
       <input type="file" id="image-upload" accept="image/*"><br><br>
       <img id="image-preview" alt="صورة المعاينة" style="display:none;"/><br><br>
 
-      <button onclick="submitRating()">إرسال التقييم</button>
+      <button id="submit-rating-btn" onclick="submitRating()">إرسال التقييم</button>
     </div>
     <div id="ratings-display" style="margin-top: 20px;"></div>
   </div>
 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
-    // إضافة جميع الأماكن المعروفة في الرياض
+    // اللغة الحالية الافتراضية "ar"
+    var currentLanguage = "ar";
+    // كائن الترجمات يحتوي على النصوص الخاصة بكل لغة
+    var translations = {
+      ar: {
+        header: "استكشاف الأماكن السياحية والتراثية",
+        filterAll: "كل الأماكن",
+        filterHistorical: "معالم تاريخية",
+        filterNatural: "وجهات سياحية",
+        searchPlaceholder: "ابحث عن مكان سياحي أو تراثي",
+        eventsButton: "فعاليات الرياض",
+        currentLocation: "موقعي الحالي",
+        ratingHeading: "تقييم هذا المكان",
+        submitRating: "إرسال التقييم",
+        attachImage: "ارفق صورة:",
+        noRatings: "لا توجد تقييمات لهذا المكان بعد.",
+        averageRating: "متوسط التقييم: ",
+        ratingStars: " نجوم",
+        selectRatingAlert: "يرجى اختيار تقييم أو كتابة تعليق.",
+        ratingSuccess: "تم إرسال التقييم بنجاح!",
+        locationError: "تعذر الحصول على موقعك. تأكد من تفعيل خدمة تحديد الموقع.",
+        browserNoGeolocation: "المتصفح لا يدعم تحديد الموقع."
+      },
+      en: {
+        header: "Explore Tourist and Heritage Places",
+        filterAll: "All Places",
+        filterHistorical: "Historical Landmarks",
+        filterNatural: "Tourist Destinations",
+        searchPlaceholder: "Search for a tourist or heritage place",
+        eventsButton: "Riyadh Events",
+        currentLocation: "My Location",
+        ratingHeading: "Rate this Place",
+        submitRating: "Submit Rating",
+        attachImage: "Attach Image:",
+        noRatings: "No ratings for this place yet.",
+        averageRating: "Average Rating: ",
+        ratingStars: " stars",
+        selectRatingAlert: "Please select a rating or write a comment.",
+        ratingSuccess: "Rating submitted successfully!",
+        locationError: "Unable to retrieve your location. Please ensure location services are enabled.",
+        browserNoGeolocation: "Your browser does not support geolocation."
+      }
+    };
+
+    // بيانات الأماكن السياحية والتراثية
     var places = [
       {
-        name: "المصمك",
-        lat: 24.6333,
-        lng: 46.7167,
+        name: "قصر المصمك",
+        lat: 24.631258,
+        lng: 46.713417,
         category: "historical",
         story: "المصمك هو قلعة تاريخية في الرياض، وهو أحد أقدم المباني في المدينة.",
         image: "almasmak.jpg",
@@ -110,8 +205,8 @@
       },
       {
         name: "برج المملكة",
-        lat: 24.7113,
-        lng: 46.6747,
+        lat: 24.711379,
+        lng: 46.674407,
         category: "natural",
         story: "برج المملكة هو أحد أشهر معالم الرياض ويتميز بتصميمه المعماري الفريد.",
         image: "kingdom_tower.jpg",
@@ -120,8 +215,8 @@
       },
       {
         name: "برج الفيصلية",
-        lat: 24.6877,
-        lng: 46.7219,
+        lat: 24.690168,
+        lng: 46.685439,
         category: "natural",
         story: "برج الفيصلية يعد من أبرز معالم الرياض ويتميز بقمته الزجاجية.",
         image: "al_faisaliah_tower.jpg",
@@ -130,8 +225,8 @@
       },
       {
         name: "البوليفارد",
-        lat: 24.7250,
-        lng: 46.6750,
+        lat: 24.7693317,
+        lng: 46.6046845,
         category: "natural",
         story: "البوليفارد هو منطقة تجمع بين التسوق والترفيه في قلب الرياض.",
         image: "boulevard.jpg",
@@ -140,8 +235,8 @@
       },
       {
         name: "البوليفارد وورد",
-        lat: 24.7400,
-        lng: 46.6900,
+        lat: 24.7747879,
+        lng: 46.603518,
         category: "natural",
         story: "البوليفارد وورد هو مشروع تجاري وترفيهي مميز في الرياض.",
         image: "boulevard_ward.jpg",
@@ -150,8 +245,8 @@
       },
       {
         name: "واجهة روشن",
-        lat: 24.7200,
-        lng: 46.7100,
+        lat: 24.843141,
+        lng: 46.734210,
         category: "natural",
         story: "واجهة روشن تعد من أحدث مشاريع التطوير الحضري في الرياض.",
         image: "roshan_waterfront.jpg",
@@ -160,8 +255,8 @@
       },
       {
         name: "مركز الملك عبدالله المالي",
-        lat: 24.7667,
-        lng: 46.7000,
+        lat: 24.762806,
+        lng: 46.640306,
         category: "natural",
         story: "مركز الملك عبدالله المالي هو قلب الأعمال والمال في الرياض.",
         image: "king_abdullah_financial_center.jpg",
@@ -174,27 +269,27 @@
     var markers = [];
     var selectedPlace;
     var uploadedImageUrl = '';
-    var userMarker; // متغير لتخزين علامة موقع المستخدم
+    var userMarker; // لتخزين علامة موقع المستخدم
 
     function initMap() {
-      // توسيع حدود الرياض قليلاً لمنطقة أكثر مرونة
-      var southWest = L.latLng(24.3, 46.2);   // الزاوية الجنوبية الغربية
-      var northEast = L.latLng(25.2, 47.3);     // الزاوية الشمالية الشرقية
+      // تحديد حدود الخريطة لتغطية الرياض بشكل مرن
+      var southWest = L.latLng(24.3, 46.2);
+      var northEast = L.latLng(25.2, 47.3);
       var bounds = L.latLngBounds(southWest, northEast);
 
-      // إنشاء الخريطة مع تقييد حركة المستخدم ضمن الحدود مع تأثير ارتداد خفيف
       map = L.map('map', {
-        center: [24.7136, 46.6753],  // إحداثيات الرياض
+        center: [24.7136, 46.6753],
         zoom: 11,
-        minZoom: 11,                // منع التكبير للخارج
-        maxBounds: bounds,          // تقييد حركة الخريطة ضمن الحدود المحددة
-        maxBoundsViscosity: 0.5      // تقليل الشدة لجعل التحكم سلسًا
+        minZoom: 11,
+        maxBounds: bounds,
+        maxBoundsViscosity: 0.5
       });
 
       L.tileLayer('https://api.maptiler.com/maps/basic-v2/{z}/{x}/{y}.png?key=PobWI8ErU9eg1kifmrSa').addTo(map);
       updateMarkers(places);
     }
 
+    // تحديث علامات الأماكن على الخريطة
     function updateMarkers(filteredPlaces) {
       markers.forEach(marker => marker.remove());
       markers = [];
@@ -209,18 +304,21 @@
       });
     }
 
+    // البحث عن الأماكن باستخدام صندوق البحث
     function searchPlaces() {
       var searchValue = document.getElementById('search-box').value.toLowerCase();
       var filteredPlaces = places.filter(place => place.name.toLowerCase().includes(searchValue));
       updateMarkers(filteredPlaces);
     }
 
+    // تصفية الأماكن حسب الفئة
     function filterPlaces() {
       var category = document.getElementById('filter-select').value;
       var filteredPlaces = category === 'all' ? places : places.filter(place => place.category === category);
       updateMarkers(filteredPlaces);
     }
 
+    // عرض تفاصيل المكان عند النقر على العلامة
     function showPlaceDetails(place) {
       selectedPlace = place;
       document.getElementById("place-title").textContent = place.name;
@@ -232,22 +330,22 @@
       displayRatings();
     }
 
+    // إرسال التقييم (التقييم، التعليق والصورة)
     function submitRating() {
-      var rating = document.querySelector('input[name="rating"]:checked') 
-        ? document.querySelector('input[name="rating"]:checked').value 
-        : null;
+      var ratingElem = document.querySelector('input[name="rating"]:checked');
+      var rating = ratingElem ? ratingElem.value : null;
       var comment = document.getElementById("user-comment").value.trim();
 
       if (!rating && !comment) {
-        alert("يرجى اختيار تقييم أو كتابة تعليق.");
+        alert(translations[currentLanguage].selectRatingAlert);
         return;
       }
 
       if (selectedPlace) {
-        selectedPlace.ratings.push({ 
-          rating: rating || "لا يوجد", 
-          comment: comment || "لا تعليق", 
-          imageUrl: uploadedImageUrl || "" 
+        selectedPlace.ratings.push({
+          rating: rating || "لا يوجد",
+          comment: comment || "لا تعليق",
+          imageUrl: uploadedImageUrl || ""
         });
 
         document.querySelectorAll('input[name="rating"]').forEach(radio => radio.checked = false);
@@ -255,19 +353,20 @@
         document.getElementById("image-preview").style.display = 'none';
         uploadedImageUrl = '';
 
-        alert("تم إرسال التقييم بنجاح!");
+        alert(translations[currentLanguage].ratingSuccess);
         displayRatings();
       } else {
         alert("لم يتم تحديد أي مكان!");
       }
     }
 
+    // عرض التقييمات المحفوظة للمكان
     function displayRatings() {
       var ratingsDisplay = document.getElementById("ratings-display");
       ratingsDisplay.innerHTML = '';
 
       if (selectedPlace.ratings.length === 0) {
-        ratingsDisplay.innerHTML = '<p>لا توجد تقييمات لهذا المكان بعد.</p>';
+        ratingsDisplay.innerHTML = '<p>' + translations[currentLanguage].noRatings + '</p>';
         return;
       }
 
@@ -276,13 +375,13 @@
         ? selectedPlace.ratings.reduce((sum, rating) => sum + (parseInt(rating.rating) || 0), 0) / totalRatings
         : 0;
 
-      ratingsDisplay.innerHTML = `<p>متوسط التقييم: ${averageRating.toFixed(1)} من 5</p>`;
+      ratingsDisplay.innerHTML = `<p>${translations[currentLanguage].averageRating}${averageRating.toFixed(1)}${translations[currentLanguage].ratingStars} من 5</p>`;
       
       selectedPlace.ratings.forEach(function(rating) {
         ratingsDisplay.innerHTML += `
           <div style="margin-bottom: 15px;">
-            <p><strong>التقييم:</strong> ${rating.rating} نجوم</p>
-            <p><strong>التعليق:</strong> ${rating.comment}</p>
+            <p><strong>${currentLanguage === 'ar' ? "التقييم:" : "Rating:"}</strong> ${rating.rating} ${currentLanguage === 'ar' ? "نجوم" : "stars"}</p>
+            <p><strong>${currentLanguage === 'ar' ? "التعليق:" : "Comment:"}</strong> ${rating.comment}</p>
             ${rating.imageUrl 
               ? `<img src="${rating.imageUrl}" style="max-width: 200px; height: auto; margin-top: 10px;" />` 
               : '' }
@@ -291,6 +390,7 @@
       });
     }
 
+    // معاينة الصورة المرفقة عند رفعها
     document.getElementById('image-upload').addEventListener('change', function(event) {
       var file = event.target.files[0];
       if (file) {
@@ -305,11 +405,7 @@
       }
     });
 
-    function openNewWindow() {
-      window.open("https://example.com/new-window", "_blank");
-    }
-
-    // دالة لإضافة دبوس موقع المستخدم
+    // الحصول على موقع المستخدم وإضافة علامة على الخريطة
     function getUserLocation() {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
@@ -317,27 +413,51 @@
             var userLat = position.coords.latitude;
             var userLng = position.coords.longitude;
 
-            // إذا كان هناك علامة سابقة، قم بإزالتها
             if (userMarker) {
               map.removeLayer(userMarker);
             }
 
-            // إضافة علامة لموقع المستخدم
             userMarker = L.marker([userLat, userLng]).addTo(map)
-              .bindPopup("موقعك الحالي").openPopup();
+              .bindPopup(currentLanguage === 'ar' ? "موقعك الحالي" : "Your Current Location").openPopup();
 
-            // تحريك الخريطة إلى موقع المستخدم
             map.setView([userLat, userLng], 12);
           },
           function(error) {
-            alert("تعذر الحصول على موقعك. تأكد من تفعيل خدمة تحديد الموقع.");
+            alert(translations[currentLanguage].locationError);
           }
         );
       } else {
-        alert("المتصفح لا يدعم تحديد الموقع.");
+        alert(translations[currentLanguage].browserNoGeolocation);
       }
     }
 
+    // دالة تغيير اللغة مع تحديث النصوص واتجاه الصفحة
+    function switchLanguage(lang) {
+      currentLanguage = lang;
+      
+      // تحديث خاصية لغة الصفحة واتجاه النص
+      document.documentElement.lang = lang;
+      document.documentElement.dir = (lang === 'ar') ? 'rtl' : 'ltr';
+      
+      // تحديث النصوص الثابتة
+      document.getElementById("page-header").textContent = translations[lang].header;
+      document.getElementById("search-box").placeholder = translations[lang].searchPlaceholder;
+      document.getElementById("option-all").textContent = translations[lang].filterAll;
+      document.getElementById("option-historical").textContent = translations[lang].filterHistorical;
+      document.getElementById("option-natural").textContent = translations[lang].filterNatural;
+      document.getElementById("events-btn").textContent = translations[lang].eventsButton;
+      document.getElementById("location-btn").textContent = translations[lang].currentLocation;
+      document.getElementById("rating-heading").textContent = translations[lang].ratingHeading;
+      document.getElementById("submit-rating-btn").textContent = translations[lang].submitRating;
+      document.getElementById("attach-image-label").textContent = translations[lang].attachImage;
+      
+      // إذا كان مكان محدد، إعادة عرض تفاصيله لتحديث النصوص
+      if (selectedPlace) {
+        showPlaceDetails(selectedPlace);
+      }
+    }
+
+    // تهيئة الخريطة عند تحميل الصفحة
     initMap();
   </script>
 </body>
