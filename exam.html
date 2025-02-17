@@ -22,6 +22,31 @@
       direction: rtl;
       line-height: 1.6;
     }
+    /* مُبدل اللغة باستخدام الأعلام */
+    .language-switcher {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 10px 15px;
+    }
+    .language-switcher button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      padding: 5px 8px;
+      transition: background-color 0.3s ease;
+    }
+    .language-switcher button:hover {
+      background-color: #e0e0e0;
+      border-radius: 4px;
+    }
+    .language-switcher .flag-icon {
+      width: 24px;
+      height: auto;
+      margin-right: 5px;
+    }
     /* تنسيق الهيدر */
     header {
       background: linear-gradient(90deg, #242528a0, #7e7e7e1d);
@@ -180,8 +205,20 @@
   </style>
 </head>
 <body>
+  <!-- مُبدل اللغة -->
+  <div class="language-switcher">
+    <button onclick="switchLanguage('ar')">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/0/0d/Flag_of_Saudi_Arabia.svg" alt="العربية" class="flag-icon">
+      العربية
+    </button>
+    <button onclick="switchLanguage('en')">
+      <img src="https://upload.wikimedia.org/wikipedia/en/a/ae/Flag_of_the_United_Kingdom.svg" alt="English" class="flag-icon">
+      English
+    </button>
+  </div>
+
   <header>
-    <h1>فعاليات الرياض</h1>
+    <h1 id="page-header">فعاليات الرياض</h1>
   </header>
   
   <div class="container">
@@ -204,81 +241,136 @@
   </div>
   
   <footer>
-    <p>&copy; 2025 فعاليات الرياض. جميع الحقوق محفوظة.</p>
+    <p id="footer-text">&copy; 2025 فعاليات الرياض. جميع الحقوق محفوظة.</p>
     <div class="social-icons">
       <a href="https://twitter.com/yourusername" target="_blank"><i class="fab fa-twitter"></i></a>
       <a href="https://www.instagram.com/yourusername" target="_blank"><i class="fab fa-instagram"></i></a>
       <a href="https://www.linkedin.com/in/abdullah-alsubaie-2b558634b" target="_blank"><i class="fab fa-linkedin"></i></a>
     </div>
     <div class="return-button">
-      <button onclick="window.location.href='examp.html'">العودة للموقع الرئيسي</button>
+      <button id="return-btn" onclick="window.location.href='examp.html'">العودة للموقع الرئيسي</button>
     </div>
   </footer>
   
   <script>
-    // بيانات الفعاليات
+    // كائن الترجمات لكل لغة
+    const translations = {
+      ar: {
+        header: "فعاليات الرياض",
+        searchPlaceholder: "ابحث عن فعالية...",
+        toggleScheduleShow: "عرض الجدول الأسبوعي",
+        toggleScheduleHide: "إخفاء الجدول الأسبوعي",
+        eventDate: "التاريخ:",
+        eventTime: "الوقت:",
+        eventLocation: "المكان:",
+        viewMap: "عرض الموقع على خرائط جوجل",
+        addToSchedule: "إضافة إلى الجدول",
+        footerText: "© 2025 فعاليات الرياض. جميع الحقوق محفوظة.",
+        returnBtn: "العودة للموقع الرئيسي",
+        promptDay: "أدخل اليوم الذي تريد إضافة الفعالية إليه (مثلاً: الأحد):",
+        promptHour: "أدخل الساعة (0-23):",
+        invalidDay: "يجب إدخال يوم صحيح من الأيام التالية:\n",
+        invalidHour: "يجب إدخال ساعة صحيحة بين 0 و 23.",
+        addedToSchedule: "تمت الإضافة إلى الجدول الأسبوعي."
+      },
+      en: {
+        header: "Riyadh Events",
+        searchPlaceholder: "Search for an event...",
+        toggleScheduleShow: "Show Weekly Schedule",
+        toggleScheduleHide: "Hide Weekly Schedule",
+        eventDate: "Date:",
+        eventTime: "Time:",
+        eventLocation: "Location:",
+        viewMap: "View on Google Maps",
+        addToSchedule: "Add to Schedule",
+        footerText: "© 2025 Riyadh Events. All rights reserved.",
+        returnBtn: "Return to Main Site",
+        promptDay: "Enter the day to add the event (e.g., Sunday):",
+        promptHour: "Enter the hour (0-23):",
+        invalidDay: "Please enter a valid day from the following:\n",
+        invalidHour: "Please enter a valid hour between 0 and 23.",
+        addedToSchedule: "Event added to the weekly schedule."
+      },
+      // أيام الأسبوع حسب اللغة
+      daysOfWeek: {
+        ar: ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"],
+        en: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+      }
+    };
+
+    // بيانات الفعاليات (تبقى باللغة العربية كما هي)
     const events = [
-      {
-        name: "حفلة أي. آر. رحمان",
-        date: "21 فبراير 2025",
-        time: "8:00 مساءً",
-        location: "فوكالي الرياض"
-      },
-      {
-        name: "فعالية رمالينا",
-        date: "10 يناير 2025 - 1 مارس 2025",
-        time: "يبدأ من 6:00 مساءً",
-        location: "مركز الرياض"
-      },
-      {
-        name: "موسم الشتوية في غرناطة مول",
-        date: "19 ديسمبر 2024 - 16 فبراير 2025",
-        time: "10:00 صباحاً",
-        location: "غرناطة مول، الرياض"
-      },
-      {
-        name: "حفلة الحب مع إيمان عبدالغني",
-        date: "12 فبراير 2025",
-        time: "7:00 مساءً",
-        location: "فوكالي الرياض"
-      }
-    ];
+  {
+    name: "حفلة أي. آر. رحمان",
+    date_ar: "21 فبراير 2025",
+    date_en: "February 21, 2025",
+    time_ar: "8:00 مساءً",
+    time_en: "8:00 PM",
+    location_ar: "فوكالي الرياض",
+    location_en: "Fokali Riyadh"
+  },
+  {
+    name: "فعالية رمالينا",
+    date_ar: "10 يناير 2025 - 1 مارس 2025",
+    date_en: "January 10, 2025 - March 1, 2025",
+    time_ar: "يبدأ من 6:00 مساءً",
+    time_en: "Starts at 6:00 PM",
+    location_ar: "مركز الرياض",
+    location_en: "Riyadh Center"
+  },
+  {
+    name: "موسم الشتوية في غرناطة مول",
+    date_ar: "19 ديسمبر 2024 - 16 فبراير 2025",
+    date_en: "December 19, 2024 - February 16, 2025",
+    time_ar: "10:00 صباحاً",
+    time_en: "10:00 AM",
+    location_ar: "غرناطة مول، الرياض",
+    location_en: "Granada Mall, Riyadh"
+  },
+  {
+    name: "حفلة الحب مع إيمان عبدالغني",
+    date_ar: "12 فبراير 2025",
+    date_en: "February 12, 2025",
+    time_ar: "7:00 مساءً",
+    time_en: "7:00 PM",
+    location_ar: "فوكالي الرياض",
+    location_en: "Fokali Riyadh"
+  }
+];
     
-    // مصفوفة لتخزين المواعيد المختارة في الجدول الأسبوعي
-    let scheduleEntries = []; // كل عنصر: { event, day, hour }
+    // مصفوفة لتخزين المواعيد المختارة في الجدول الأسبوعي (كل عنصر: { event, day, hour })
+    let scheduleEntries = [];
     
-    // الأيام المستخدمة في الجدول (يمكن تعديلها حسب التفضيل)
-    const daysOfWeek = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
-    
-    // دالة لعرض الفعاليات مع إضافة زر "إضافة إلى الجدول"
+    // الدالة لعرض الفعاليات مع إضافة زر "إضافة إلى الجدول"
     function displayEvents(filteredEvents) {
-      const container = document.getElementById("eventsContainer");
-      container.innerHTML = "";
-  
-      if(filteredEvents.length === 0) {
-        container.innerHTML = "<p style='text-align:center; font-size:1.2em;'>لا توجد فعاليات مطابقة للبحث.</p>";
-        return;
-      }
-  
-      filteredEvents.forEach((event, index) => {
-        // إنشاء رابط خرائط جوجل باستخدام الموقع
-        const mapUrl = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(event.location);
-        const card = document.createElement("div");
-        card.className = "event-card";
-        card.innerHTML = `
-          <h2>${event.name}</h2>
-          <p><span class="label">التاريخ:</span> ${event.date}</p>
-          <p><span class="label">الوقت:</span> ${event.time}</p>
-          <p><span class="label">المكان:</span> ${event.location}</p>
-          <p><a href="${mapUrl}" target="_blank">عرض الموقع على خرائط جوجل</a></p>
-          <p><button onclick="addToSchedule(${index})">إضافة إلى الجدول</button></p>
-        `;
-        container.appendChild(card);
-      });
-    }
+  const container = document.getElementById("eventsContainer");
+  container.innerHTML = "";
+
+  if(filteredEvents.length === 0) {
+    container.innerHTML = `<p style='text-align:center; font-size:1.2em;'>${currentLang === "ar" ? "لا توجد فعاليات مطابقة للبحث." : "No events match your search."}</p>`;
+    return;
+  }
+
+  filteredEvents.forEach((event, index) => {
+    // اختيار الحقول بناءً على اللغة
+    const dateField = currentLang === "ar" ? event.date_ar : event.date_en;
+    const timeField = currentLang === "ar" ? event.time_ar : event.time_en;
+    const locationField = currentLang === "ar" ? event.location_ar : event.location_en;
     
-    // عرض جميع الفعاليات عند تحميل الصفحة
-    displayEvents(events);
+    const mapUrl = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(locationField);
+    const card = document.createElement("div");
+    card.className = "event-card";
+    card.innerHTML = `
+      <h2>${event.name}</h2>
+      <p><span class="label">${currentLang === "ar" ? "التاريخ:" : "Date:"}</span> ${dateField}</p>
+      <p><span class="label">${currentLang === "ar" ? "الوقت:" : "Time:"}</span> ${timeField}</p>
+      <p><span class="label">${currentLang === "ar" ? "المكان:" : "Location:"}</span> ${locationField}</p>
+      <p><a href="${mapUrl}" target="_blank">${currentLang === "ar" ? "عرض الموقع على خرائط جوجل" : "View on Google Maps"}</a></p>
+      <p><button onclick="addToSchedule(${index})">${translations[currentLang].addToSchedule}</button></p>
+    `;
+    container.appendChild(card);
+  });
+}
     
     // وظيفة البحث لتصفية الفعاليات
     const searchInput = document.getElementById("searchInput");
@@ -292,25 +384,22 @@
       displayEvents(filtered);
     });
     
-    // دالة لإضافة فعالية إلى الجدول الأسبوعي
+    // دالة إضافة فعالية إلى الجدول الأسبوعي
     function addToSchedule(eventIndex) {
       const event = events[eventIndex];
-      // استخدام prompt لاختيار اليوم والساعة (يمكن استبدالها بنموذج مخصص)
-      let day = prompt("أدخل اليوم الذي تريد إضافة الفعالية إليه (مثلاً: الأحد):");
-      if(!day || !daysOfWeek.includes(day.trim())) {
-        alert("يجب إدخال يوم صحيح من الأيام التالية:\n" + daysOfWeek.join(", "));
+      let day = prompt(translations[currentLang].promptDay);
+      if(!day || !translations.daysOfWeek[currentLang].includes(day.trim())) {
+        alert(translations[currentLang].invalidDay + translations.daysOfWeek[currentLang].join(", "));
         return;
       }
-      let hour = prompt("أدخل الساعة (0-23):");
+      let hour = prompt(translations[currentLang].promptHour);
       hour = parseInt(hour);
       if(isNaN(hour) || hour < 0 || hour > 23) {
-        alert("يجب إدخال ساعة صحيحة بين 0 و 23.");
+        alert(translations[currentLang].invalidHour);
         return;
       }
-      // إضافة الفعالية إلى الجدول
       scheduleEntries.push({ event, day: day.trim(), hour });
-      alert("تمت الإضافة إلى الجدول الأسبوعي.");
-      // تحديث عرض الجدول إذا كان ظاهرًا
+      alert(translations[currentLang].addedToSchedule);
       if(document.getElementById("scheduleContainer").style.display !== "none"){
         renderScheduleTable();
       }
@@ -319,25 +408,22 @@
     // دالة إنشاء الجدول الأسبوعي
     function renderScheduleTable() {
       const container = document.getElementById("scheduleContainer");
-      // إنشاء جدول مع عمود للوقت وسبعة أعمدة للأيام
+      let dayNames = translations.daysOfWeek[currentLang];
       let tableHTML = `<table class="schedule-table">
         <thead>
           <tr>
-            <th>الوقت</th>`;
-      daysOfWeek.forEach(day => {
+            <th>${currentLang === "ar" ? "الوقت" : "Time"}</th>`;
+      dayNames.forEach(day => {
         tableHTML += `<th>${day}</th>`;
       });
       tableHTML += `</tr>
         </thead>
         <tbody>`;
-      // إنشاء 24 صفاً لكل ساعة من 0 إلى 23
       for(let h = 0; h < 24; h++){
-        // تنسيق الساعة بشكل (مثلاً: 08:00)
         const hourLabel = h.toString().padStart(2, "0") + ":00";
         tableHTML += `<tr>
           <td>${hourLabel}</td>`;
-        daysOfWeek.forEach(day => {
-          // البحث عن الفعاليات المجدولة في هذا اليوم والساعة
+        dayNames.forEach(day => {
           const cellEvents = scheduleEntries.filter(entry => entry.day === day && entry.hour === h);
           let cellContent = "";
           cellEvents.forEach(entry => {
@@ -357,13 +443,44 @@
       const scheduleContainer = document.getElementById("scheduleContainer");
       if(scheduleContainer.style.display === "none" || scheduleContainer.style.display === ""){
         scheduleContainer.style.display = "block";
-        toggleBtn.textContent = "إخفاء الجدول الأسبوعي";
+        toggleBtn.textContent = translations[currentLang].toggleScheduleHide;
         renderScheduleTable();
       } else {
         scheduleContainer.style.display = "none";
-        toggleBtn.textContent = "عرض الجدول الأسبوعي";
+        toggleBtn.textContent = translations[currentLang].toggleScheduleShow;
       }
     });
+    
+    // اللغة الحالية (افتراضي)
+    let currentLang = "ar";
+    
+    // دالة تبديل اللغة وتحديث النصوص الثابتة
+    function switchLanguage(lang) {
+      currentLang = lang;
+      document.documentElement.lang = lang;
+      document.documentElement.dir = (lang === "ar") ? "rtl" : "ltr";
+  
+      // تحديث النصوص الثابتة
+      document.getElementById("page-header").textContent = translations[lang].header;
+      document.getElementById("searchInput").placeholder = translations[lang].searchPlaceholder;
+      toggleBtn.textContent = translations[lang].toggleScheduleShow;
+      document.getElementById("return-btn") && (document.getElementById("return-btn").textContent = translations[lang].returnBtn);
+      document.getElementById("footer-text").textContent = translations[lang].footerText;
+      
+      // إعادة عرض الفعاليات لتحديث أزرار بطاقة الفعالية
+      displayEvents(events);
+      
+      // في حال كان الجدول معروضاً، إعادة رسمه
+      if(document.getElementById("scheduleContainer").style.display !== "none"){
+        renderScheduleTable();
+      }
+    }
+    
+    // عرض جميع الفعاليات عند تحميل الصفحة
+    displayEvents(events);
+    
+    // تهيئة الجدول (مخفى في البداية)
+    document.getElementById("scheduleContainer").style.display = "none";
   </script>
 </body>
 </html>
